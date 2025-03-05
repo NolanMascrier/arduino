@@ -12,8 +12,8 @@
 */
 
 #include <Arduino_APDS9960.h>
-//#include <WiFiNINA.h>
 #include "arduino_secrets.h"
+#include <Arduino.h>
 
 #define TRIGG_BOTTOM D12
 #define TRIGG_TOP D10
@@ -41,21 +41,6 @@ int status = STATUS_SAFE;
 
 int ledState = LOW;
 
-//please enter your sensitive data in the Secret tab
-//char ssid[] = SECRET_SSID;                // your network SSID (name)
-//char pass[] = SECRET_PASS;                // your network password (use for WPA, or use as key for WEP)
-
-unsigned long previousMillis = 0;
-
-const long intervalLong = 750;
-const long intervalMedLo = 250;
-const long intervalMed = 150;
-const long intervalMedSho = 80;
-const long intervalShort = 20;
-
-const int trigger = 12;
-const int echo = 11;
-
 //std::string sides[6];
 std::string sides[6] = {"Bottom", "Top", "Right", "Front", "Left", "Back"};
 
@@ -71,10 +56,14 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Starting up");
 
+  while (!Serial);
+  Serial.println("Serial connected.");
   if (!APDS.begin()) {
     Serial.println("Error initializing APDS-9960 sensor!");
     while (1);
   }
+
+  
   pinMode(LED_BUILTIN, OUTPUT);
 
   //Init the sensors
@@ -114,26 +103,41 @@ int fire_sensor(int trigger, int echo)
   return (dist);
 }
 
+/**
+ * Sends the data to the server.
+*/
+void send_JSON()
+{
+  std::string json = "{";
+  json += "\"" + sides[0] + "\":" + std::to_string(distances[0]) + ",";
+  json += "\"" + sides[1] + "\":" + std::to_string(distances[1]) + ",";
+  json += "\"" + sides[2] + "\":" + std::to_string(distances[2]) + ",";
+  json += "\"" + sides[3] + "\":" + std::to_string(distances[3]) + ",";
+  json += "\"" + sides[4] + "\":" + std::to_string(distances[4]) + ",";
+  json += "\"" + sides[5] + "\":" + std::to_string(distances[5]) + "";
+  json += "}";
+
+  Serial.println(json.c_str());
+}
+
 void loop() {
   unsigned long currentMillis = millis();
   
-  Serial.print("Measure number ");
-  Serial.println(count);
   distances[0] = fire_sensor(TRIGG_BOTTOM, ECHO_BOTTOM);
   distances[1] = fire_sensor(TRIGG_TOP, ECHO_TOP);
   distances[2] = fire_sensor(TRIGG_1, ECHO_1);
   distances[3] = fire_sensor(TRIGG_2, ECHO_2);
   distances[4] = fire_sensor(TRIGG_3, ECHO_3);
   distances[5] = fire_sensor(TRIGG_4, ECHO_4);
-
-  for (int i = 0; i < 6; i++)
+  send_JSON();
+  /*for (int i = 0; i < 6; i++)
   {
     Serial.print("Sensor {");
     Serial.print(sides[i].c_str());
     Serial.print("} : ");
     Serial.print(distances[i]);
     Serial.println("cm");
-  }
+  }*/
   //update_status(distance);
 
   // wait a bit before reading again

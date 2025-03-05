@@ -1,57 +1,32 @@
-#!/usr/bin/env python3
-"""
-License: MIT License
-Copyright (c) 2023 Miel Donkers
-
-Very simple HTTP server in python for logging requests
-Usage::
-    ./server.py [<port>]
-"""
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import logging
+import serial
+import requests
 import json
 
-class S(BaseHTTPRequestHandler):
-    def _set_response(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
+# Adjust this to match your serial port
+SERIAL_PORT = "/dev/ttyACM0"  # Linux/macOS (Check with `ls /dev/tty*`)
+# SERIAL_PORT = "COM3"  # Windows (Check with Device Manager)
+BAUD_RATE = 115200
+SERVER_URL = "http://127.0.0.1:8080"  # Change to your server's IP if needed
 
-    def do_GET(self):
-        logging.info("GET request,\nPath: %s\nHeaders:\n%s\n", str(self.path), str(self.headers))
-        self._set_response()
-        self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
+# Open Serial Connection
+ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+print(f"Listening on {SERIAL_PORT}...")
 
-    def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        
-        # Parse JSON
-        try:
-            data = json.loads(post_data.decode('utf-8'))
-            logging.info("Received data: %s", data)
-        except json.JSONDecodeError:
-            logging.error("Failed to decode JSON")
-
-        self._set_response()
-        self.wfile.write("Received JSON data".encode('utf-8'))
-
-def run(server_class=HTTPServer, handler_class=S, port=8080):
-    logging.basicConfig(level=logging.INFO)
-    server_address = ('', port)
-    httpd = server_class(server_address, handler_class)
-    logging.info('Starting httpd...\n')
+while True:
     try:
-        httpd.serve_forever()
+        if ser.in_waiting > 0:
+            data = ser.readline().decode("utf-8").strip()
+            print("Received:", data)
+
+            # Validate JSON
+            try:
+                json_data = json.loads(data)
+                # Send data to HTTP server
+                print("Server response:", json_data)
+            except json.JSONDecodeError:
+                print("Invalid JSON received:", data)
+
     except KeyboardInterrupt:
-        pass
-    httpd.server_close()
-    logging.info('Stopping httpd...\n')
-
-if __name__ == '__main__':
-    from sys import argv
-
-    if len(argv) == 2:
-        run(port=int(argv[1]))
-    else:
-        run()
+        print("\nClosing Serial Connection...")
+        ser.close()
+        break
