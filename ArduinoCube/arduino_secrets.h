@@ -1,0 +1,5 @@
+#define SSID "Non"
+#define PASS "Non"
+#define SERV_ADDR "Non"
+#define SERV_PORT "Non"
+#define AI_KEY "Non"

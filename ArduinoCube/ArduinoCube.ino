@@ -42,8 +42,8 @@ int status = STATUS_SAFE;
 int ledState = LOW;
 
 //please enter your sensitive data in the Secret tab
-char ssid[] = SECRET_SSID;                // your network SSID (name)
-char pass[] = SECRET_PASS;                // your network password (use for WPA, or use as key for WEP)
+//char ssid[] = SECRET_SSID;                // your network SSID (name)
+//char pass[] = SECRET_PASS;                // your network password (use for WPA, or use as key for WEP)
 
 unsigned long previousMillis = 0;
 
@@ -55,6 +55,9 @@ const long intervalShort = 20;
 
 const int trigger = 12;
 const int echo = 11;
+
+//std::string sides[6];
+std::string sides[6] = {"Bottom", "Top", "Right", "Front", "Left", "Back"};
 
 int count = 0;
 
@@ -95,19 +98,19 @@ void setup() {
  * 
  * @return calculated distance.
 */
-long fire_sensor(int trigger, int echo)
+int fire_sensor(int trigger, int echo)
 {
-  long dist;
+  int dist;
   long dur;
 
   digitalWrite(trigger, LOW);
-  delayMicroseconds(2);
+  delayMicroseconds(100);
   digitalWrite(trigger, HIGH);
-  delayMicroseconds(10);
+  delayMicroseconds(500);
   digitalWrite(trigger, LOW);
   dur = pulseIn(echo, HIGH);
   dist = dur * 0.034 / 2;
-  delay(50);
+  delay(100);
   return (dist);
 }
 
@@ -126,7 +129,7 @@ void loop() {
   for (int i = 0; i < 6; i++)
   {
     Serial.print("Sensor {");
-    Serial.print(i);
+    Serial.print(sides[i].c_str());
     Serial.print("} : ");
     Serial.print(distances[i]);
     Serial.println("cm");
@@ -134,6 +137,6 @@ void loop() {
   //update_status(distance);
 
   // wait a bit before reading again
-  delayMicroseconds(1000000);
+  delayMicroseconds(10000);
   count++;
 }
