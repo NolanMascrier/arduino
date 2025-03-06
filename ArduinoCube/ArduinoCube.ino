@@ -12,8 +12,9 @@
 */
 
 #include <Arduino_APDS9960.h>
-#include "arduino_secrets.h"
+#include <Arduino_LSM9DS1.h>
 #include <Arduino.h>
+#include "arduino_secrets.h"
 
 #define TRIGG_BOTTOM D12
 #define TRIGG_TOP D10
@@ -29,30 +30,22 @@
 #define ECHO_3 A3
 #define ECHO_4 A5
 
-#define STATUS_SAFE 0
-#define STATUS_CLOSE 1
-#define STATUS_DANGER 2
+float x = 0;
+float y = 0;
+float z = 0;
 
-#define DISTANCE_DANGER 40
-#define DISTANCE_SAFE 120 
+int plusThreshold = 30;
+int minusThreshold = -30;
 
-int status = STATUS_SAFE;
-//int wifi_status = WL_IDLE_STATUS;
-
-int ledState = LOW;
-
-//std::string sides[6];
 std::string sides[6] = {"Bottom", "Top", "Right", "Front", "Left", "Back"};
-
-int count = 0;
-
-long duration = 0;
-int distance = 0;
-
 long durations[6];
 long distances[6];
 
-void setup() {
+/**
+ * Sets up the Arduino.
+*/
+void setup()
+{
   Serial.begin(9600);
   Serial.println("Starting up");
 
@@ -62,10 +55,7 @@ void setup() {
     Serial.println("Error initializing APDS-9960 sensor!");
     while (1);
   }
-
-  
   pinMode(LED_BUILTIN, OUTPUT);
-
   //Init the sensors
   pinMode(TRIGG_BOTTOM, OUTPUT);
   pinMode(TRIGG_TOP, OUTPUT);
@@ -84,7 +74,10 @@ void setup() {
 
 /**
  * Reads the data from the sensor and calculates the distance.
+ * /home/devel/arduino/.env
  * 
+ * @arg trigger Pin number for the trigger.
+ * @arg echo Pin number for the echo.
  * @return calculated distance.
 */
 int fire_sensor(int trigger, int echo)
@@ -104,7 +97,8 @@ int fire_sensor(int trigger, int echo)
 }
 
 /**
- * Sends the data to the server.
+ * Sends the data to the server. Writes it as a JSON parsable string
+ * and sends it to the Serial Monitor.
 */
 void send_JSON()
 {
@@ -114,15 +108,22 @@ void send_JSON()
   json += "\"" + sides[2] + "\":" + std::to_string(distances[2]) + ",";
   json += "\"" + sides[3] + "\":" + std::to_string(distances[3]) + ",";
   json += "\"" + sides[4] + "\":" + std::to_string(distances[4]) + ",";
-  json += "\"" + sides[5] + "\":" + std::to_string(distances[5]) + "";
+  json += "\"" + sides[5] + "\":" + std::to_string(distances[5]) + ",";
+  json += "\"X\":" + std::to_string(x) + ",";
+  json += "\"Y\":" + std::to_string(y) + ",";
+  json += "\"Z\":" + std::to_string(z) + "";
   json += "}";
 
   Serial.println(json.c_str());
 }
 
-void loop() {
-  unsigned long currentMillis = millis();
-  
+/**
+ * Main loop running inside the Arduino. Calls the sensors 
+ * and the gyroscope, and sends the results to the Python server
+ * through the Serial as JSON.
+*/
+void loop() 
+{
   distances[0] = fire_sensor(TRIGG_BOTTOM, ECHO_BOTTOM);
   distances[1] = fire_sensor(TRIGG_TOP, ECHO_TOP);
   distances[2] = fire_sensor(TRIGG_1, ECHO_1);
@@ -130,17 +131,5 @@ void loop() {
   distances[4] = fire_sensor(TRIGG_3, ECHO_3);
   distances[5] = fire_sensor(TRIGG_4, ECHO_4);
   send_JSON();
-  /*for (int i = 0; i < 6; i++)
-  {
-    Serial.print("Sensor {");
-    Serial.print(sides[i].c_str());
-    Serial.print("} : ");
-    Serial.print(distances[i]);
-    Serial.println("cm");
-  }*/
-  //update_status(distance);
-
-  // wait a bit before reading again
   delayMicroseconds(10000);
-  count++;
 }
