@@ -10,7 +10,8 @@ The project needed only bases due to the collaboration with non-programmers, but
 ![image](https://github.com/user-attachments/assets/a826167c-d6f3-495a-ac72-7f3ed5134d6e)
 > Assembling the sensors into a wooden cube
 
-
+![IMG_1730](https://github.com/user-attachments/assets/08bb3ed7-be35-481b-a614-ba5b665b6b09)
+![IMG_1728](https://github.com/user-attachments/assets/b3da9b79-222f-4d16-bb84-a92a3e6e80f0)
 > Final result of the cube
 
 ## Pins and wiring
