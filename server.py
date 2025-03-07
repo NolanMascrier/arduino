@@ -3,10 +3,13 @@ import requests
 import json
 import sys
 import time
+import time
+import pyglet
+import os
 from threading import Thread
 from Cube import Cube
+from gtts import gTTS
 
-# Adjust this to match your serial port
 SERIAL_PORT = "/dev/ttyACM0"  # Linux/macOS (Check with `ls /dev/tty*`)
 BAUD_RATE = 115200
 
@@ -50,7 +53,21 @@ def read_key():
                 API_KEY = value
                 
 
-def ask_ia(prompt):
+def play_audio(answer):
+    """Play an audio file through the pyglet library
+    and the google translation TTS.
+    
+    Args:
+        answer (string): Text that will be read"""
+    tts = gTTS(text=answer, lang='en')
+    filename = '/tmp/temp.mp3'
+    tts.save(filename)
+    music = pyglet.media.load(filename, streaming=False)
+    music.play()
+    time.sleep(music.duration)
+    os.remove(filename)
+
+def querry(prompt):
     """Sends the prompt to the DeepSeek API, and returns
     its answer.
 
@@ -82,15 +99,20 @@ def ask_ia(prompt):
     try:
         if response.status_code == 200:
             ai_response = response.json()["choices"][0]["message"]["content"]
-            print(f"Cube : {ai_response}")
+            print(f"Cube: {ai_response}")
             return ai_response
         else:
             error_message = f"Erreur API DeepSeek: {response.status_code} - {response.text}"
-            print(f"❌ {error_message}")
+            print(f"Error: {error_message}")
             return None
     except Exception as e:
         print("WOOPS It exploded ::", e)
         sys.exit(0)
+
+def ask_ia(prompt):
+    """Querries the AI and play the resulting audio."""
+    answer = querry(prompt)
+    play_audio(answer)
 
 def generate_response(prompt):
     """Launches a thread that will query DeepSeek and
