@@ -15,6 +15,16 @@ The project needed only bases due to the collaboration with non-programmers, but
 > Final result of the cube
 
 ## Pins and wiring
+You'll need 6 HC-SR04. 
+* Plug all VCC wires from the sensor in series toward the VIN pin of the Arduino.
+* Plug all GND wires from the sensor in series toward one of the GND pin of the Arduino.
+* Plug the BOTTOM sensor : TRIGG to D12, ECHO to D11
+* Plug the TOP sensor : TRIGG to D10, ECHO to D9
+* Plug the RIGHT SIDE sensor : TRIGG to D8, ECHO to D7
+* Plug the FRONT FACE sensor : TRIGG to A0, ECHO to A1
+* Plug the LEFT FACE sensor : TRIGG to A2, ECHO to A3
+* Plug the BACK FACE sensor : TRIGG to A4, ECHO to A5
+![Pasted image-min](https://github.com/user-attachments/assets/05fcca53-d61c-4d7e-bf5c-ace5d70a58d2)
 
 
 ## Requirements
