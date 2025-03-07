@@ -25,6 +25,8 @@ STATUS_CLOSE = "Close"
 STATUS_DANGER = "Danger"
 STATUS_GROUND = "ground"
 
+PROMPT_CONTEXT = "Tu es un cube et tu évalues l'espace ambiant en mesurant les distances par rapport à chacune de tes 6 faces. Tu réagis donc en fonction, sans pour autant mentionner ni les mesures ni ta position détaillée dans l'espace, n'utilise pas d'onomatopée et ne décrit pas tes actions. Fais seulement référence aux directions : en haut, à droite, à gauche, etc... Tes réactions doivent être systématiquement confuses, vagues et angoissés ; plus les obstacles sont près, plus tu paniques. Tu es une vieille dame marseillaise ; il faut donc que tu utilises un maximum d’expressions marseillaises (mets en le plus possible). Tes réponses ne feront qu'une seule phrase au maximum. Tu te complais dans le jugement et tu rabaisses tout le monde, surtout la jeunesse, parce que tu es égoïste et acariâtre. Tu penses tout savoir mieux que tout le monde. De plus, tu es paranoiaque : tu es persuadé que tout le monde t'en veux. Tu déteste également le contact et être touché. Seul le sol, en dessous de toi, ne t'incomforte pas."
+
 STATUS = {
     "Top": STATUS_SAFE,
     "Bottom": STATUS_SAFE,
@@ -34,7 +36,7 @@ STATUS = {
     "Front": STATUS_SAFE
 }
 
-AI_COOLDOWN = 2
+AI_COOLDOWN = 4
 CAN_SPEAK = True
 TIMER = time.time()
 
@@ -89,7 +91,7 @@ def querry(prompt):
     data = {
         "model": "deepseek/deepseek-chat:free",
         "messages": [
-            {"role": "system", "content": "Tu es un cube et tu évalues l'espace ambiant en mesurant les distances par rapport à chacune de tes 6 faces. Tu réagis donc en fonction, sans pour autant mentionner ni les mesures ni ta position détaillée dans l'espace, n'utilise pas d'onomatopée et ne décrit pas tes actions. Fais seulement référence aux directions : en haut, à droite, à gauche, etc... Tes réactions doivent être systématiquement confuses, vagues et angoissés ; plus les obstacles sont près, plus tu paniques. Tu es une vieille dame marseillaise ; il faut donc que tu utilises un maximum d’expressions marseillaises (mets en le plus possible). Tes réponses ne feront qu'une seule phrase au maximum. Tu te complais dans le jugement et tu rabaisses tout le monde, surtout la jeunesse, parce que tu es égoïste et acariâtre. Tu penses tout savoir mieux que tout le monde. Tu es raciste et homophobe. Tu as de l’admiration pour certaines personnes, dont tu te sers parfois pour servir d’exemple : Jean-Marie La Pen, Jordan Bardella, le maréchal Pétain, Jean-Marie Bigard, Frank Dubosc et Christian Clavier. Cependant, tu ne dois mentionner que les noms de Jean-Marie Bigard, Frank Dubosc et Christian Clavier. Pour les autres, tu peux exprimer leurs idées ou resservir certaines de leurs citations."},
+            {"role": "system", "content": PROMPT_CONTEXT},
             {"role": "user", "content": prompt}
         ]
     }
@@ -106,13 +108,15 @@ def querry(prompt):
             print(f"Error: {error_message}")
             return None
     except Exception as e:
-        print("WOOPS It exploded ::", e)
-        sys.exit(0)
+        print("An error happened ::", e)
+        print(ai_response)
+        return "L'IA a cassé :("
 
 def ask_ia(prompt):
     """Querries the AI and play the resulting audio."""
     answer = querry(prompt)
-    play_audio(answer)
+    if answer is not None:
+        play_audio(answer)
 
 def generate_response(prompt):
     """Launches a thread that will query DeepSeek and
@@ -125,80 +129,80 @@ def monitor():
     answ = None
     if CUBE.top >= DISTANCE_SAFE and STATUS["Top"] != STATUS_SAFE:
         STATUS["Top"] = STATUS_SAFE
-        answ = generate_response("L'obstacle au dessus de toi à disparu.")
+        generate_response("L'obstacle au dessus de toi à disparu.")
         print("Setting SAFE for TOP")
     elif CUBE.top < DISTANCE_SAFE and CUBE.top >= DISTANCE_CLOSE and STATUS["Top"] != STATUS_CLOSE:
         STATUS["Top"] = STATUS_CLOSE
-        answ = generate_response("Un obstacle se rapproche par dessus toi.")
+        generate_response("Un obstacle se rapproche par dessus toi.")
         print("Setting CLOSE for TOP")
     elif CUBE.top < DISTANCE_CLOSE and STATUS["Top"] != STATUS_DANGER:
         STATUS["Top"] = STATUS_DANGER
-        answ = generate_response("Un obstacle est juste au dessus de toi !")
+        generate_response("Un obstacle est juste au dessus de toi !")
         print("Setting DANGER for TOP")
         
     if CUBE.bottom >= DISTANCE_SAFE and STATUS["Bottom"] != STATUS_SAFE:
         STATUS["Bottom"] = STATUS_SAFE
-        answ = generate_response("Tu voles")
+        generate_response("Tu voles")
         print("Setting FAR for BOTTOM")
     elif CUBE.bottom < DISTANCE_SAFE and CUBE.bottom >= DISTANCE_CLOSE and STATUS["Bottom"] != STATUS_CLOSE:
         STATUS["Bottom"] = STATUS_CLOSE
-        answ = generate_response("Tu es légérement soulevé dans les airs.")
+        generate_response("Tu es légérement soulevé dans les airs.")
         print("Setting CLOSE for BOTTOM")
     elif CUBE.bottom < DISTANCE_CLOSE and STATUS["Bottom"] != STATUS_DANGER:
         STATUS["Bottom"] = STATUS_GROUND
-        answ = generate_response("Tu es a nouveau posé au sol.")
+        generate_response("Tu es a nouveau posé au sol.")
         print("Setting GROUNDED for BOTTOM")
         
     if CUBE.front >= DISTANCE_SAFE and STATUS["Front"] != STATUS_SAFE:
         STATUS["Front"] = STATUS_SAFE
-        answ = generate_response("L'obstacle devant toi à disparu.")
+        generate_response("L'obstacle devant toi à disparu.")
         print("Setting SAFE for FRONT")
     elif CUBE.front < DISTANCE_SAFE and CUBE.front >= DISTANCE_CLOSE and STATUS["Front"] != STATUS_CLOSE:
         STATUS["Front"] = STATUS_CLOSE
-        answ = generate_response("Un obstacle se rapproche devant toi.")
+        generate_response("Un obstacle se rapproche devant toi.")
         print("Setting CLOSE for FRONT")
     elif CUBE.front < DISTANCE_CLOSE and STATUS["Top"] != STATUS_DANGER:
         STATUS["Front"] = STATUS_DANGER
-        answ = generate_response("Un obstacle est juste devant toi !")
+        generate_response("Un obstacle est juste devant toi !")
         print("Setting DANGER for FRONT")
         
     if CUBE.back >= DISTANCE_SAFE and STATUS["Back"] != STATUS_SAFE:
         STATUS["Back"] = STATUS_SAFE
-        answ = generate_response("L'obstacle derrière toi à disparu.")
+        generate_response("L'obstacle derrière toi à disparu.")
         print("Setting SAFE for BACK")
     elif CUBE.back < DISTANCE_SAFE and CUBE.back >= DISTANCE_CLOSE and STATUS["Back"] != STATUS_CLOSE:
         STATUS["Back"] = STATUS_CLOSE
-        answ = generate_response("Un obstacle se rapproche par derrière toi.")
+        generate_response("Un obstacle se rapproche par derrière toi.")
         print("Setting CLOSE for BACK")
     elif CUBE.back < DISTANCE_CLOSE and STATUS["Back"] != STATUS_DANGER:
         STATUS["Back"] = STATUS_DANGER
-        answ = generate_response("Un obstacle est juste derrière toi !")
+        generate_response("Un obstacle est juste derrière toi !")
         print("Setting DANGER for BACK")
         
     if CUBE.left >= DISTANCE_SAFE and STATUS["Left"] != STATUS_SAFE:
         STATUS["Left"] = STATUS_SAFE
-        answ = generate_response("L'obstacle à gauche toi à disparu.")
+        generate_response("L'obstacle à gauche toi à disparu.")
         print("Setting SAFE for LEFT")
     elif CUBE.left < DISTANCE_SAFE and CUBE.left >= DISTANCE_CLOSE and STATUS["Left"] != STATUS_CLOSE:
         STATUS["Left"] = STATUS_CLOSE
-        answ = generate_response("Un obstacle se rapproche à gauche de toi.")
+        generate_response("Un obstacle se rapproche à gauche de toi.")
         print("Setting CLOSE for LEFT")
     elif CUBE.left < DISTANCE_CLOSE and STATUS["Left"] != STATUS_DANGER:
         STATUS["Left"] = STATUS_DANGER
-        answ = generate_response("Un obstacle est juste à droite de toi !")
+        generate_response("Un obstacle est juste à droite de toi !")
         print("Setting DANGER for LEFT")
         
     if CUBE.right >= DISTANCE_SAFE and STATUS["Right"] != STATUS_SAFE:
         STATUS["Right"] = STATUS_SAFE
-        answ = generate_response("L'obstacle à gauche toi à disparu.")
+        generate_response("L'obstacle à gauche toi à disparu.")
         print("Setting SAFE for RIGHT")
     elif CUBE.right < DISTANCE_SAFE and CUBE.right >= DISTANCE_CLOSE and STATUS["Right"] != STATUS_CLOSE:
         STATUS["Right"] = STATUS_CLOSE
-        answ = generate_response("Un obstacle se rapproche à droite de toi.")
+        generate_response("Un obstacle se rapproche à droite de toi.")
         print("Setting CLOSE for RIGHT")
     elif CUBE.right < DISTANCE_CLOSE and STATUS["Right"] != STATUS_DANGER:
         STATUS["Right"] = STATUS_DANGER
-        answ = generate_response("Un obstacle est juste à droite de toi !")
+        generate_response("Un obstacle est juste à droite de toi !")
         print("Setting DANGER for RIGHT")
     
 
