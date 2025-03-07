@@ -59,7 +59,7 @@ def play_audio(answer):
     
     Args:
         answer (string): Text that will be read"""
-    tts = gTTS(text=answer, lang='en')
+    tts = gTTS(text=answer, lang='fr')
     filename = '/tmp/temp.mp3'
     tts.save(filename)
     music = pyglet.media.load(filename, streaming=False)
