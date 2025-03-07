@@ -13,5 +13,24 @@ The project needed only bases due to the collaboration with non-programmers, but
 
 > Final result of the cube
 
-## Code
-blabla
+## Pins and wiring
+
+## Requirements
+Python and python packages :
+* Python : 3.13.0
+* requests : 2.32.3
+* pyserial : 3.5
+* gTTS : 2.5.4
+* pyglet : 2.1.3
+
+As for the Arduino, we'll need the following packages :
+* Arduino_LSM9DS1 : 1.1.1
+* Arduino_APDS9960 : 1.0.4
+
+## Launching
+
+Connect the Arduino to your computer, and check which USB port it is using. If it's not using `/dev/ttyACM0`, you'll need to change `SERIAL_PORT` in `server.py`. 
+
+Furthermore, in the same folder as `server.py`, you'll need to create a `.env` and put in the following value : `KEY="your_api_key"`. You can use a Key for DeepSeek. If you wish to use another model, you'll need to change the `querry()` function. 
+
+Once connected, simply launch the server with python : `python3 server.py`. If it works, you'll see a `Listening on /dev/ttyACM0 ...` in the console.
