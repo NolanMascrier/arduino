@@ -46,3 +46,6 @@ Connect the Arduino to your computer, and check which USB port it is using. If i
 Furthermore, in the same folder as `server.py`, you'll need to create a `.env` and put in the following value : `KEY="your_api_key"`. You can use a Key for DeepSeek. If you wish to use another model, you'll need to change the `querry()` function. 
 
 Once connected, simply launch the server with python : `python3 server.py`. If it works, you'll see a `Listening on /dev/ttyACM0 ...` in the console.
+
+## Known issues
+The TTS is overlapping with the next one, and sometimes repeating the same audio file.
